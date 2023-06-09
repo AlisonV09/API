@@ -1,6 +1,7 @@
 const express = require('express');
 const { MongoClient, ObjectId } = require('mongodb');
 const bodyparser = require('body-parser');
+const res = require('express/lib/response');
 require('dotenv').config();
 const uri = process.env.URI;
 
@@ -9,21 +10,11 @@ class movieService{
     constructor(){}
     
     //CREATE
-    async insertOne(){
+    async insertOne(body){
         const client = new MongoClient(uri);
-        const body = req.body;
         try{
             await client.connect();
             const resultado = await client.db("sample_mflix").collection("movies").insertOne(body).toArray();
-            if (resultado) {
-                res.send(resultado);
-            } else {
-                res.status(201).json({
-                    "message": "Se creo una pelicula",
-                    data: body,
-                    resultado,
-                });
-            }
         }catch(e){
             console.log(e);
         }finally{
@@ -37,6 +28,7 @@ class movieService{
         try{
             await client.connect();
             const resultado = await client.db("sample_mflix").collection("movies").find({}).skip(Number(offset)).limit(Number(limit)).toArray();
+            return resultado;
         }catch(e){
             console.log(e);
         }finally{
@@ -45,16 +37,12 @@ class movieService{
     }
 
     //findOne
-    async findOne(){
+    async findOne(id){
         const client = new MongoClient(uri);
         try{
             await client.connect();
             const resultado = await client.db("sample_mflix").collection("movies").findOne({_id: new ObjectId(id)});
-            if (resultado) {
-                res.send(resultado);
-            } else {
-                res.send("No se encontró la pelicula");
-            }
+            return resultado;
         }catch(e){
             console.log(e);
         }finally{
@@ -62,16 +50,14 @@ class movieService{
         }
     }
     //UPDATE
-    async updateOne(){
-        const id = req.params.id;
+    async updateOne(id, title, year){
         const client = new MongoClient(uri);
-        const body = req.body;
         try{
             await client.connect();
             const resultado = await client.db("sample_mflix").collection("movies").updateOne({"_id": new ObjectId(id)}, {
                 $set:{
-                    title: body.title,
-                    year: body.year
+                    title: title,
+                    year: year
                 }}).toArray();
         }catch(e){
             console.log(e);

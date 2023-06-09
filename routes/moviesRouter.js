@@ -9,22 +9,22 @@ const service = new movieService();
 
 router.get('/', async(req, res)=>{
     const { limit , offset} = req.query;
-    const movies = await service.find();
+    const movies = await service.find(limit, offset);
     if (movies) {
         res.status(200).send(movies);
     } else {
-        res.send("No se encontró la pelicula");
+        res.status(404).send("No se encontró la pelicula");
     }
 })
 
 //FindOne
 router.get('/:id', async(req, res)=>{
-    const resultado = await service.findOne();
-    const id = req.params;
+    const resultado = await service.findOne(id);
+    const id = req.params.id;
     if (resultado) {
         res.status(200).send(resultado);
     } else {
-        res.send("No se encontró la pelicula");
+        res.status(404).send("No se encontró la pelicula");
     }
 })
 
@@ -32,32 +32,29 @@ router.get('/:id', async(req, res)=>{
 //insertOne
 router.post('/', async(req, res)=>{
     const body = req.body;
-    const resultado = await service.insertOne();
+    const resultado = await service.insertOne(body);
     if (resultado) {
-        res.send(resultado);
-    } else {
         res.status(201).json({
             "message": "Se creo una pelicula",
-            data: body,
             resultado,
-        });
+        })
+    } else {
+        res.status(404).send("No se creo la pelicula");
     }
 })
 
 //UPDATE
 router.patch('/:id', async(req, res)=>{
     const id = req.params.id;
-    const client = new MongoClient(uri);
-    const body = req.body;
-    const resultado = await service.updateOne();
+    const { title, year } = req.body;
+    const resultado = await service.updateOne(id, title, year);
     if (resultado) {
-        res.send(resultado);
-    } else {
-        res.status(200).json({
+        res.status(201).json({
             "message": "Se modifica una pelicula",
-            data: body,
             resultado,
         });
+    } else {
+        res.status(404).send("No se actualizo la pelicula");
     }
 })
 
@@ -71,7 +68,7 @@ router.delete('/:id', async(req, res)=>{
                 resultado,
             });
         } else {
-            res.send("No se encontró la pelicula");
+            res.status(404).send("No se encontró la pelicula");
         }
     })
 
